@@ -1,0 +1,80 @@
+pipeline {
+    agent any
+    environment {
+        AWS_REGION = 'us-west-2' // Change this to your AWS region
+        ECR_REPOSITORY = 'my-app-repo' // Change this to your ECR repository name
+        EKS_CLUSTER_NAME = 'my-eks-cluster' // Your EKS cluster name
+        K8S_DEPLOYMENT_NAME = 'my-app-deployment' // Your Kubernetes deployment name
+        IMAGE_TAG = "${GIT_COMMIT}" // Unique tag for each commit
+    }
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout code from Git repository
+                checkout scm
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Log in to Amazon ECR
+                    sh 'aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com'
+
+                    // Build the Docker image
+                    sh "docker build -t $ECR_REPOSITORY:$IMAGE_TAG ."
+                }
+            }
+        }
+
+        stage('Test') {
+            steps {
+                script {
+                    // Run application tests (assuming you use npm)
+                    sh 'npm install'
+                    sh 'npm test'
+                }
+            }
+        }
+
+        stage('Push Docker Image to ECR') {
+            steps {
+                script {
+                    // Tag and push the image to Amazon ECR
+                    sh "docker tag $ECR_REPOSITORY:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG"
+                    sh "docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG"
+                }
+            }
+        }
+
+        stage('Deploy to EKS') {
+            steps {
+                script {
+                    // Set up AWS credentials for EKS
+                    withAWS(credentials: 'aws-credentials') {
+                        // Configure kubectl to use EKS cluster
+                        sh "aws eks --region $AWS_REGION update-kubeconfig --name $EKS_CLUSTER_NAME"
+
+                        // Update the deployment with the new image
+                        sh """
+                            kubectl set image deployment/$K8S_DEPLOYMENT_NAME my-app-container=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$ECR_REPOSITORY:$IMAGE_TAG --record
+                            kubectl rollout status deployment/$K8S_DEPLOYMENT_NAME
+                        """
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            // Clean up (optional)
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline executed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed!'
+        }
+    }
+}
