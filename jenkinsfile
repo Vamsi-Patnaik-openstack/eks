@@ -1,10 +1,10 @@
 pipeline {
     agent any
     environment {
-        AWS_REGION = 'us-west-2' // Change this to your AWS region
-        ECR_REPOSITORY = 'my-app-repo' // Change this to your ECR repository name
-        EKS_CLUSTER_NAME = 'my-eks-cluster' // Your EKS cluster name
-        K8S_DEPLOYMENT_NAME = 'my-app-deployment' // Your Kubernetes deployment name
+        AWS_REGION = 'ap-south-1' // Change this to your AWS region
+        ECR_REPOSITORY = '183295454008.dkr.ecr.ap-south-1.amazonaws.com/vamsi' // Change this to your ECR repository name
+        EKS_CLUSTER_NAME = 'eks-cluster' // Your EKS cluster name
+        K8S_DEPLOYMENT_NAME = 'app-deployment-via-jenkins' // Your Kubernetes deployment name
         IMAGE_TAG = "${GIT_COMMIT}" // Unique tag for each commit
     }
     stages {
