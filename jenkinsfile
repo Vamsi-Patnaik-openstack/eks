@@ -12,7 +12,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Checkout code from Git repository
-                git 'https://github.com/Vamsi-Patnaik-openstack/dokcer.git'
+                checkout scm
             }
         }
 
