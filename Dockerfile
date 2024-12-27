@@ -1,5 +1,8 @@
 FROM node:16
 WORKDIR /application/src/app
 COPY app.js .
-EXPOSE 3000
+RUN npm cache clean --force
+RUN npm install
+RUN npm fund
+EXPOSE 4000
 CMD ["node", "app.js"]
