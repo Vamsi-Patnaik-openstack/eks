@@ -6,8 +6,8 @@ pipeline {
         ECR_REPOSITORY = 'ubantu' // Change this to your ECR repository name
         EKS_CLUSTER_NAME = 'eks-cluster' // Your EKS cluster name
         K8S_DEPLOYMENT_NAME = 'app-deployment-via-jenkins' // Your Kubernetes deployment name
-        DOCKER_HUB_USERNAME = credentials('donkadavamsi2894') // Jenkins credential ID for Docker Hub username
-        DOCKER_HUB_PASSWORD = credentials('India@123') // Jenkins credential ID for Docker Hub password
+        DOCKER_HUB_USERNAME = 'donkadavamsi2894' // Jenkins credential ID for Docker Hub username
+        DOCKER_HUB_PASSWORD = 'India@123' // Jenkins credential ID for Docker Hub password
         DOCKER_IMAGE_NAME = "donkadavamsi2894/node-eks-app" // Replace with your Docker Hub repo and image name
         IMAGE_TAG = "${GIT_COMMIT}" // Unique tag for each commit
     }
@@ -23,7 +23,7 @@ pipeline {
             steps {
                 script {
                     // Log in to docker
-                    sh"echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin"
+                    sh "echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin"
                     // Build the Docker image
                     sh "docker build -t $ECR_REPOSITORY:$IMAGE_TAG ."
                 }
